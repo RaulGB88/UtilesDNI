@@ -1,51 +1,113 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2017 Raúl Granel Blasco - raul.granel@gmail.com.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.japo.java.lib;
 
 /**
  *
- * @author - Raul Granel - raul.granel@gmail.com
+ * @author Raúl Granel Blasco - raul.granel@gmail.com
  */
 public class UtilesDNI {
 
-    //Constantes.
+    // Limites DNI
+    public final static int DNI_MIN = 10000000;
+    public final static int DNI_MAX = 99999999;
+
+    // Secuencia de letras
     public static final String LETRAS = "TRWAGMYFPDXBNJZSQVHLCKE";
-    public static final int DNI_NUMERO = 29211661;
-    public static final char DNI_CONTROL = 'M';
 
-    //public static final int MAX = 99999999;
-    //public static final int MIN = 00000000;
-    public static void comprobarDNI() {
+    public static char calcularLetraDNI(int dni) {
+        return LETRAS.charAt(dni % LETRAS.length());
+    }
 
-        //Comprueba si letra y el número de DNI se corresponden.
-        boolean controlLetra = comprobarletraDNI(DNI_NUMERO, DNI_CONTROL);
+    public static int extraerNumeroDNI(String dni) {
+        // Almacen del DNI extraido
+        int numeroDNI;
 
-        if (controlLetra) {
-            //Mensaje con la letra y número de DNI, que determina si es correcto o no.
-            System.out.printf("DNI....: %d-%c >>>>> SÍ es correcto.\n", DNI_NUMERO, DNI_CONTROL);
-        } else {
-            //Mensaje con la letra y número de DNI, que determina si es correcto o no.
-            System.out.printf("DNI....: %d-%c >>>>> NO es correcto.\n", DNI_NUMERO, DNI_CONTROL);
+        // DNI en formato NNNNNNNNL o NNNNNNNN-L
+        try {
+            // Convierte el texto a entero
+            numeroDNI = Integer.parseInt(dni.substring(0, 8));
+
+            // Valida el DNI
+            if (validarNumeroDNI(numeroDNI) == false) {
+                throw new Exception("DNI erróneo");
+            }
+        } catch (Exception e) {
+            // Número para DNI erróneo
+            numeroDNI = -1;
         }
+
+        // Devuelve el DNI obtenido
+        return numeroDNI;
     }
 
-    //Calculo de la letra correspondiente al numero de DNI.
-    public static char calcularLetraDNI(int num) {
+    public static char extraerLetraDNI(String dni) {
+        // Posición guión
+        int posGuion = dni.indexOf('-');
 
-        //Devolver posición.
-        return LETRAS.charAt(num % 23);
+        // Letra del DNI
+        char letra;
+
+        // DNI en formato NNNNNNNNL o NNNNNNNN-L
+        if (posGuion > -1) {            // Formato NNNNNNNN-L
+            letra = dni.charAt(posGuion + 1);
+        } else if (dni.length() > 0) {  // Formato NNNNNNNNL
+            letra = dni.charAt(dni.length() - 1);
+        } else {                        // Formato INCORRECTO
+            letra = '?';
+        }
+
+        // Convierte la letra a mayúscula
+        letra = Character.toUpperCase(letra);
+
+        // Comprueba si la letra está en la lista
+        if (LETRAS.indexOf(letra) == -1) {
+            // Letra desconocida > INCORRECTO
+            letra = '?';
+        }
+
+        // Devuelve la letra extraida
+        return letra;
     }
 
-    //Comprueba si la letra y el número de DNI se corresponden.
-    public static boolean comprobarletraDNI(int num, char ctr) {
-
-        //Variable letra.
-        char letra = calcularLetraDNI(num);
-
-        //Devolver letra si coincide.
-        return letra == ctr;
+    public static boolean validarNumeroDNI(int numero) {
+        return numero >= DNI_MIN && numero <= DNI_MAX;
     }
+
+    public static boolean validarDNI(String dni) {
+        // Semáforo de validación
+        boolean dniOK;
+
+        // Extraer DNI
+        int numero = extraerNumeroDNI(dni);
+
+        // Extraer LETRA
+        char letra = extraerLetraDNI(dni);
+
+        // Análisis DNI
+        if (!validarNumeroDNI(numero)) {
+            // DNI NO válido
+            dniOK = false;
+        } else {
+            // Análisis LETRA
+            dniOK = calcularLetraDNI(numero) == letra;
+        }
+
+        // Resultado del análisis
+        return dniOK;
+    }
+    
 }
